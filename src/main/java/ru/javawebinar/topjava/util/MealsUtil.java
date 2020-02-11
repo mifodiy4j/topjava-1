@@ -209,6 +209,18 @@ public class MealsUtil {
         return mealsTo;
     }
 
+    public static List<MealTo> convert(Collection<Meal> meals, int caloriesPerDay) {
+        Collection<List<Meal>> list = meals.stream()
+                .collect(Collectors.groupingBy(Meal::getDate)).values();
+
+        return list.stream()
+                .flatMap(dayMeals -> {
+                    boolean excess = dayMeals.stream().mapToInt(Meal::getCalories).sum() > caloriesPerDay;
+                    return dayMeals.stream()
+                            .map(meal -> createTo(meal, excess));
+                }).collect(toList());
+    }
+
     private static List<MealTo> filteredByFlatMap(List<Meal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
         Collection<List<Meal>> list = meals.stream()
                 .collect(Collectors.groupingBy(Meal::getDate)).values();
@@ -256,6 +268,6 @@ public class MealsUtil {
     }
 
     private static MealTo createTo(Meal meal, boolean excess) {
-        return new MealTo(meal.getDateTime(), meal.getDescription(), meal.getCalories(), excess);
+        return new MealTo(meal.getId(), meal.getDateTime(), meal.getDescription(), meal.getCalories(), excess);
     }
 }
